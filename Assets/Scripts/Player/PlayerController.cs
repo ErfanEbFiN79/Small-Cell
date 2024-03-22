@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
 {
     #region Variables
 
+    public static PlayerController intance;
     private enum StatePlayer
     {
         Move,
@@ -24,11 +25,22 @@ public class PlayerController : MonoBehaviour
     [Header("Fire Setting")] 
     [SerializeField] private GameObject[] bullet;
     [SerializeField] private Transform pointShot;
+    [SerializeField] private float timeBtwShot;
     private int _orderShot;
+    private float timeBtwShotSet;
+    public bool canFight { get; private set; }
     
     #endregion
 
     #region Unity Methods
+
+    private void Awake()
+    {
+        if (intance == null && intance != this)
+        {
+            intance = this;
+        }
+    }
 
     private void Update()
     {
@@ -45,6 +57,10 @@ public class PlayerController : MonoBehaviour
         {
             case StatePlayer.Move:
                 Move();
+                if (!canFight)
+                {
+                    TimeShotManager();
+                }
                 break;
             
             case StatePlayer.Stay:
@@ -52,11 +68,27 @@ public class PlayerController : MonoBehaviour
                 break;
         }
     }
+
+    private void TimeShotManager()
+    {
+        timeBtwShotSet += Time.deltaTime;
+        if (timeBtwShotSet >= timeBtwShot)
+        {
+            canFight = true;
+        }
+    }
     #endregion
 
     #region Buttons
 
-    public void Fire() => FireAction();
+    public void Fire()
+    {
+        if (canFight)
+        {
+            FireAction();
+        }
+
+    }
 
     #endregion
 
@@ -70,7 +102,6 @@ public class PlayerController : MonoBehaviour
 
     private void FireAction()
     {
-        
         if (_orderShot > bullet.Length-1)
         {
             _orderShot = 0;
@@ -81,6 +112,8 @@ public class PlayerController : MonoBehaviour
             quaternion.identity
         );
         _orderShot += 1;
+        canFight = false;
+        timeBtwShotSet = 0;
     }
 
     #endregion
